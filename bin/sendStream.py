@@ -39,17 +39,17 @@ def main():
     producer = Producer(conf)
 
     record_list = read_csv(args.filename).to_dict(orient='records')
-    i = 0
+    # i = 0
 
     for record in record_list:
 
         try:
             msg = json.dumps(record)
             producer.produce(topic, key=p_key, value=msg, callback=acked)
-            i += 1
+            # i += 1
             
-            if i % 12 == 0:
-                time.sleep(2)
+            # if i % 12 == 0:
+            #     time.sleep(2)
 
 
             producer.flush()
