@@ -50,7 +50,7 @@ def main():
             
             # if i % 12 == 0:
             #     time.sleep(2)
-            time.sleep(1)
+            time.sleep(0.5)
 
             producer.flush()
 
