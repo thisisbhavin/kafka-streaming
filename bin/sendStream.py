@@ -11,6 +11,7 @@ import time
 from dateutil.parser import parse
 from confluent_kafka import Producer
 import socket
+from pandas import read_csv
 
 
 def acked(err, msg):
@@ -37,42 +38,20 @@ def main():
             'client.id': socket.gethostname()}
     producer = Producer(conf)
 
-    rdr = csv.reader(open(args.filename))
-    next(rdr)  # Skip header
-    firstline = True
+    record_list = read_csv(args.filename).to_dict(orient='records')
 
-    while True:
+    for record in record_list:
 
         try:
-
-            if firstline is True:
-                line1 = next(rdr, None)
-                timestamp, value = line1[0], float(line1[1])
-                # Convert csv columns to key value pair
-                result = {}
-                result[timestamp] = value
-                # Convert dict to json as message format
-                jresult = json.dumps(result)
-                firstline = False
-
-                producer.produce(topic, key=p_key, value=jresult, callback=acked)
-
-            else:
-                line = next(rdr, None)
-                d1 = parse(timestamp)
-                d2 = parse(line[0])
-                diff = ((d2 - d1).total_seconds())/args.speed
-                time.sleep(diff)
-                timestamp, value = line[0], float(line[1])
-                result = {}
-                result[timestamp] = value
-                jresult = json.dumps(result)
-
-                producer.produce(topic, key=p_key, value=jresult, callback=acked)
+            msg = json.dumps(record)
+            producer.produce(topic, key=p_key, value=msg, callback=acked)
+            
+            time.sleep(1)
 
             producer.flush()
 
-        except TypeError:
+        except Exception as e:
+            print("Error: %s" % (str(e)))
             sys.exit()
 
 
